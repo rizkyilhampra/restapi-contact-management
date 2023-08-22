@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -54,6 +56,58 @@ class UserTest extends TestCase
             'errors' => [
                 'username' => [
                     'The username has already been taken.'
+                ]
+            ]
+        ]);
+    }
+
+    public function testLoginSuccess()
+    {
+        $this->seed([
+            UserSeeder::class,
+        ]);
+
+        $this->post('/api/users/login', [
+            'username' => 'ilham',
+            'password' => '12345678',
+        ])->assertStatus(200)->assertJson([
+            'data' => [
+                'username' => 'ilham',
+                'name' => 'Ilham',
+            ]
+        ]);
+
+        $user = User::where('username', 'ilham')->first();
+        $this->assertNotNull($user->token);
+    }
+
+    public function testLoginFailedUsernameNotExist()
+    {
+        $this->post('/api/users/login', [
+            'username' => 'ilham',
+            'password' => '12345678',
+        ])->assertStatus(422)->assertJson([
+            'errors' => [
+                'username' => [
+                    'The selected username is invalid.'
+                ]
+            ]
+        ]);
+    }
+
+    public function testLoginFailedPasswordDontMatch()
+    {
+        $this->seed([
+            UserSeeder::class,
+        ]);
+
+        $this->post('/api/users/login', [
+            'username' => 'ilham',
+            'password' => 'ilham23423',
+        ])->assertStatus(422)->assertJson([
+            'errors' => [
+                'message' => [
+                    'Password is incorrect'
                 ]
             ]
         ]);
