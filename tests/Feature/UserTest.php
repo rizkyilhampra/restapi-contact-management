@@ -203,6 +203,8 @@ class UserTest extends TestCase
                 'message' => 'Logout success'
             ]
         ]);
+
+        $this->assertNull(User::where('username', 'ilham')->first()->token);
     }
 
     public function testLogoutFailed()
